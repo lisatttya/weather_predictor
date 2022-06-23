@@ -69,7 +69,7 @@ module decision_tree (
                     tmp_out = 3'b000; // sunny
                 end
                 else begin
-                    tmp_out = 3'b001; // rainy!
+                    tmp_out = 3'b001; // rainy
                 end
             end
             default : begin
