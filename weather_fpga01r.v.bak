@@ -1,0 +1,11 @@
+module ewather_fpga01(
+    input clk,
+    output [2:0] LED,
+);
+    wire clock;
+    wire [2:0] out;
+
+    decision_tree tree1(clock, 5'b01010, 5'b00000, 
+                        5'b00010, 5'b00100, out);
+    assign LED = out;
+endmodule
