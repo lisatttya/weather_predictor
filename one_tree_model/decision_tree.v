@@ -15,7 +15,8 @@ module decision_tree (
     parameter state_0 = 3'b000;
     parameter state_1 = 3'b001;
     parameter state_2 = 3'b010;
-    parameter state_3 = 3'b100;
+    parameter state_3 = 3'b011;
+    parameter state_4 = 3'b100;
 
     reg[4:0] tmp_out;
     reg[2:0] present_state, next_state;
@@ -29,7 +30,7 @@ module decision_tree (
         end
     end
 
-    always @ (posedge CLOCK_50 or posedge rst) begin
+    always @ (posedge CLOCK_50) begin
         case(present_state)
             state_0 : begin
                 if (in_temp_max <= 17) begin
