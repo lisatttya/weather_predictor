@@ -1,0 +1,199 @@
+module decision_tree1 (
+    CLOCK_50,
+    rst,
+    in_temp_max,
+    in_temp_min,
+    in_precipitation,
+    in_wind,
+    out);
+
+    input CLOCK_50, rst;
+    input[4:0] in_temp_max, in_temp_min,
+                in_precipitation, in_wind;
+    output[2:0] out;
+
+    parameter state_0 = 5'b00000;
+    parameter state_1 = 5'b00001;
+    parameter state_2 = 5'b00010;
+    parameter state_3 = 5'b00011;
+    parameter state_4 = 5'b00100;
+    parameter state_5 = 5'b00101;
+    parameter state_6 = 5'b00110;
+    parameter state_7 = 5'b00111;
+    parameter state_8 = 5'b01000;
+    parameter state_9 = 5'b01001;
+    parameter state_10 = 5'b01010;
+    parameter state_11 = 5'b01011;
+    parameter state_12 = 5'b01100;
+    parameter state_13 = 5'b01101;
+    parameter state_14 = 5'b01110;
+    parameter state_15 = 5'b01111;
+    parameter state_16 = 5'b10000;
+    parameter state_17 = 5'b10001;
+
+    reg[2:0] tmp_out;
+    reg[2:0] present_state, next_state;
+
+    always @ (posedge CLOCK_50 or posedge rst) begin
+        if(rst) begin
+            present_state <= state_0;
+        end
+        else begin
+            present_state <= next_state;
+        end
+    end
+
+    always @ (posedge CLOCK_50) begin
+        case(present_state)
+            state_0 : begin
+                if (in_precipitation <= 1) begin
+                    next_state = state_1;
+                end
+                else begin
+                    next_state = state_2;
+                end
+            end
+            state_1 : begin
+                if (in_temp_max <= 18) begin
+                    next_state = state_3;
+                end
+                else begin
+                    next_state = state_4;
+                end
+            end
+            state_2 : begin
+                if (in_wind <= 5) begin
+                    next_state = state_5;
+                end
+                else begin
+                    next_state = state_6;
+                end
+            end
+            state_3 : begin
+                if (in_temp_max <= 8) begin
+                    next_state = state_7;
+                end
+                else begin
+                    next_state = state_8;
+                end
+            end
+            state_4 : begin
+                if (in_temp_max <= 30) begin
+                    next_state = state_9;
+                end
+                else begin
+                    tmp_out = 3'b100; // sunny
+                end
+            end
+            state_5 : begin
+                if (in_temp_min <= 1) begin
+                    next_state = state_10;
+                end
+                else begin
+                    tmp_out = 3'b001; // rainy
+                end
+            end
+            state_6 : begin
+                if (in_temp_min <= 1) begin
+                    tmp_out = 3'b101; // snowy
+                end
+                else begin
+                    next_state = state_11;
+                end
+            end
+            state_7 : begin
+                if (in_wind <= 3) begin
+                    next_state = state_12;
+                end
+                else begin
+                    next_state = state_13;
+                end
+            end
+            state_8 : begin
+                if (in_wind <= 2) begin
+                    next_state = state_14;
+                end
+                else begin
+                    tmp_out = 3'b100; // sunny
+                end
+            end
+            state_9 : begin
+                if (in_wind <= 2) begin
+                    next_state = state_15;
+                end
+                else begin
+                    next_state = state_16;
+                end
+            end
+            state_10 : begin
+                if (in_temp_min <= -1) begin
+                    tmp_out = 3'b001; // rainy
+                end
+                else begin
+                    next_state = state_17;
+                end
+            end
+            state_11 : begin
+                if (in_temp_max <= 7) begin
+                    tmp_out = 3'b101; // snowy
+                end
+                else begin
+                    tmp_out = 3'b001; // rainy
+                end
+            end
+            state_12 : begin
+                if (in_temp_max <= 4) begin
+                    tmp_out = 3'b010; // drizzle
+                end
+                else begin
+                    tmp_out = 3'b001; // rainy
+                end
+            end
+            state_13 : begin
+                if (in_temp_min <= 2) begin
+                    tmp_out = 3'b100; // sunny
+                end
+                else begin
+                    tmp_out = 3'b001; // rainy
+                end
+            end
+            state_14 : begin
+                if (in_temp_min <= 3) begin
+                    tmp_out = 3'b100; // sunny
+                end
+                else begin
+                    tmp_out = 3'b011; // foggy
+                end
+            end
+            state_15 : begin
+                if (in_temp_max <= 28) begin
+                    tmp_out = 3'b100; // sunny
+                end
+                else begin
+                    tmp_out = 3'b001; // rainy
+                end
+            end
+            state_16 : begin
+                if (in_temp_min <= 17) begin
+                    tmp_out = 3'b001; // rainy
+                end
+                else begin
+                    tmp_out = 3'011; // foggy
+                end
+            end
+            state_17 : begin
+                if (in_wind <= 3) begin
+                    tmp_out = 3'b001; // rainy
+                end
+                else begin
+                    tmp_out = 3'b101; // snowy
+                end
+            end
+            default : begin
+                tmp_out = 3'b111;
+                next_state = state_0;
+            end
+        endcase
+    end
+    assign out = tmp_out;
+endmodule
