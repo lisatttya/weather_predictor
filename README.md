@@ -10,7 +10,7 @@ FPGA開発ボードを用いてランダムフォレストの計算処理を高�
 - Python
 
 ## Authors
-- Yuka Ikegami 
+- Yuka Ikegami https://github.com/Yuka361
 - Lisa Zhai https://github.com/lisatttya
 
 ## Further Information
