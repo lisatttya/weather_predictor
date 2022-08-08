@@ -341,29 +341,29 @@ module weather_fpga01r(
    wire[4:0] out5;
    wire[4:0] out6;
    wire[4:0] out7;
-	wire[4:0] out8;
+   wire[4:0] out8;
    wire[4:0] out9;
-	wire[2:0] est;
+   wire[2:0] est;
 
    decision_tree1 tree1(clock, KEY[0], tree_input[0], tree_input[1], 
                         tree_input[2], tree_input[3], out1);
    decision_tree2 tree2(clock, KEY[0], tree_input[0], tree_input[1], 
                         tree_input[2], tree_input[3], out2);
-	decision_tree3 tree3(clock, KEY[0], tree_input[0], tree_input[1], 
+   decision_tree3 tree3(clock, KEY[0], tree_input[0], tree_input[1], 
                         tree_input[2], tree_input[3], out3);
    decision_tree4 tree4(clock, KEY[0], tree_input[0], tree_input[1], 
                         tree_input[2], tree_input[3], out4);
-	decision_tree5 tree5(clock, KEY[0], tree_input[0], tree_input[1], 
+   decision_tree5 tree5(clock, KEY[0], tree_input[0], tree_input[1], 
                         tree_input[2], tree_input[3], out5);
    decision_tree6 tree6(clock, KEY[0], tree_input[0], tree_input[1], 
                         tree_input[2], tree_input[3], out6);
-	decision_tree7 tree7(clock, KEY[0], tree_input[0], tree_input[1], 
+   decision_tree7 tree7(clock, KEY[0], tree_input[0], tree_input[1], 
                         tree_input[2], tree_input[3], out7);
-	decision_tree8 tree8(clock, KEY[0], tree_input[0], tree_input[1], 
+   decision_tree8 tree8(clock, KEY[0], tree_input[0], tree_input[1], 
                         tree_input[2], tree_input[3], out8);
-	decision_tree9 tree9(clock, KEY[0], tree_input[0], tree_input[1], 
+   decision_tree9 tree9(clock, KEY[0], tree_input[0], tree_input[1], 
                         tree_input[2], tree_input[3], out9);
-	majority_vote vote(clock, out1, out2, out3, out4, out5, out6, out7, out8, out9, est);
+   majority_vote vote(clock, out1, out2, out3, out4, out5, out6, out7, out8, out9, est);
 
    // LED output
    assign LED1 = est;
