@@ -8,9 +8,9 @@ module decision_tree (
     out);
 
     input CLOCK_50, rst;
-    input[3:0] in_temp_max, in_temp_min,
+    input[4:0] in_temp_max, in_temp_min,
                 in_precipitation, in_wind;
-    output[4:0] out;
+    output[2:0] out;
 
     parameter state_0 = 3'b000;
     parameter state_1 = 3'b001;
@@ -18,7 +18,7 @@ module decision_tree (
     parameter state_3 = 3'b011;
     parameter state_4 = 3'b100;
 
-    reg[4:0] tmp_out;
+    reg[2:0] tmp_out;
     reg[2:0] present_state, next_state;
 
     always @ (posedge CLOCK_50 or posedge rst) begin
@@ -79,4 +79,27 @@ module decision_tree (
         endcase
     end
     assign out = tmp_out;
+endmodule
+
+module testbench;
+    reg[4:0] in_temp_max, in_temp_min, in_precipitation, in_wind;
+    wire[2:0] out1;
+    wire clock;
+    reg rst;
+
+    decision_tree tree1(clock, rst, in_temp_max, in_temp_min, in_precipitation, in_wind, out1);
+    //decision_tree tree2(clock, rst, in_temp_max, in_temp_min, in_precipitation, in_wind, out2);
+    initial
+    begin
+    in_temp_max = 5'b01010;
+    in_temp_min = 5'b00000;
+    in_precipitation = 5'b00010;
+    in_wind = 5'b00100;
+    rst = 0;
+    # 50 rst = 1;
+    # 30 rst = 0;
+
+    # 100;
+    end
+ 
 endmodule
