@@ -1,86 +1,19 @@
-module decision_tree (
-    CLOCK_50,
-    rst,
-    in_temp_max,
-    in_temp_min,
-    in_precipitation,
-    in_wind,
-    tmp_out);
+/********* module output list ***********//*
+< decision tree(1-9) output[4:0] assign rule >
+ - sunny: 10000
+ - snowy: 01000
+ - rainy: 00100
+ - foggy: 00010
+ - drizzle: 00001
 
-    input CLOCK_50, rst;
-    input[4:0] in_temp_max, in_temp_min,
-                in_precipitation, in_wind;
-    //output[2:0] out;
+< majority vote output[2:0] assign rule >
+ - sunny: 101
+ - snowy: 100
+ - rainy: 011
+ - foggy: 010
+ - drizzle: 001
 
-    parameter state_0 = 3'b000;
-    parameter state_1 = 3'b001;
-    parameter state_2 = 3'b010;
-    parameter state_3 = 3'b011;
-    parameter state_4 = 3'b100;
-
-    output reg[4:0] tmp_out;
-    reg[2:0] present_state, next_state;
-
-    always @ (posedge CLOCK_50 or posedge rst) begin
-        if(rst) begin
-            present_state <= state_0;
-        end
-        else begin
-            present_state <= next_state;
-        end
-    end
-
-    always @ (posedge CLOCK_50) begin
-        case(present_state)
-            state_0 : begin
-                if (in_temp_max <= 17) begin
-                    next_state <= state_1;
-                end
-                else begin
-                    next_state <= state_2;
-                end
-            end
-            state_1 : begin
-                if (in_precipitation <= 1) begin
-                    tmp_out <= 5'b10000; // sunny
-                end
-                else begin
-                    next_state <= state_3;
-                end
-            end
-            state_2 : begin
-                if (in_temp_max <= 26) begin
-                    next_state <= state_4;
-                end
-                else begin
-                    tmp_out <= 5'b10000; // sunny
-                end
-            end
-            state_3 : begin
-                if (in_temp_min <= 1) begin
-                    tmp_out <= 5'b01000; // snowy
-                end
-                else begin
-                    tmp_out <= 5'b00100; // rainy
-                end
-            end
-            state_4 : begin
-                if (in_precipitation <= 1) begin
-                    tmp_out <= 5'b10000; // sunny
-                end
-                else begin
-                    tmp_out <= 5'b00100; // rainy
-                end
-            end
-            default : begin
-                tmp_out <= 5'b11111;
-                next_state <= state_0;
-            end
-        endcase
-    end
-    //assign out = tmp_out;
-endmodule
-
+/*************** till here **************/
 module decision_tree1 (
     CLOCK_50,
     rst,
@@ -91,9 +24,49 @@ module decision_tree1 (
     tmp_out);
 
     input CLOCK_50, rst;
-    input[4:0] in_temp_max, in_temp_min,
+    input[31:0] in_temp_max, in_temp_min,
                 in_precipitation, in_wind;
     output reg[4:0] tmp_out;
+    wire cmp_out0, cmp_out1, cmp_out2, cmp_out3, cmp_out4, cmp_out5, cmp_out6, cmp_out7, cmp_out8, 
+        cmp_out9, cmp_out10, cmp_out11, cmp_out12, cmp_out13, cmp_out14, cmp_out15, cmp_out16, cmp_out17;
+
+    reg [31:0] bc0 = 32'b00111111000000000000000000000000; // 0.5
+    reg [31:0] bc1 = 32'b01000001100011000000000000000000; // 17.5
+    reg [31:0] bc2 = 32'b01000000100100000000000000000000; // 4.5
+    reg [31:0] bc3 = 32'b01000000111100000000000000000000; // 7.5
+    reg [31:0] bc4 = 32'b01000001111011000000000000000000; // 29.5
+    reg [31:0] bc5 = 32'b00111111000000000000000000000000; // 0.5
+    reg [31:0] bc6 = 32'b00111111100000000000000000000000; // 1.0
+    reg [31:0] bc7 = 32'b01000000001000000000000000000000; // 2.5
+    reg [31:0] bc8 = 32'b00111111110000000000000000000000; // 1.5
+    reg [31:0] bc9 = 32'b00111111110000000000000000000000; // 1.5
+    reg [31:0] bc10 = 32'b10111111000000000000000000000000; // -0.5
+    reg [31:0] bc11 = 32'b01000000110100000000000000000000; // 6.5
+    reg [31:0] bc12 = 32'b01000000011000000000000000000000; // 3.5
+    reg [31:0] bc13 = 32'b01000000000000000000000000000000; // 2.0
+    reg [31:0] bc14 = 32'b01000000001000000000000000000000; // 2.5
+    reg [31:0] bc15 = 32'b01000001111000000000000000000000; // 28
+    reg [31:0] bc16 = 32'b01000001100001000000000000000000; // 16.5
+    reg [31:0] bc17 = 32'b01000000001000000000000000000000; // 2.5
+
+    cmp cmp0(CLOCK_50, in_precipitation, bc0, cmp_out0);
+    cmp cmp1(CLOCK_50, in_temp_max, bc1, cmp_out1);
+    cmp cmp2(CLOCK_50, in_wind, bc2, cmp_out2);
+    cmp cmp3(CLOCK_50, in_temp_max, bc3, cmp_out3);
+    cmp cmp4(CLOCK_50, in_temp_max, bc4, cmp_out4);
+    cmp cmp5(CLOCK_50, in_temp_min, bc5, cmp_out5);
+    cmp cmp6(CLOCK_50, in_temp_min, bc6, cmp_out6);
+    cmp cmp7(CLOCK_50, in_wind, bc7, cmp_out7);
+    cmp cmp8(CLOCK_50, in_wind, bc8, cmp_out8);
+    cmp cmp9(CLOCK_50, in_wind, bc9, cmp_out9);
+    cmp cmp10(CLOCK_50, in_temp_min, bc10, cmp_out10);
+    cmp cmp11(CLOCK_50, in_temp_max, bc11, cmp_out11);
+    cmp cmp12(CLOCK_50, in_temp_max, bc12, cmp_out12);
+    cmp cmp13(CLOCK_50, in_temp_min, bc13, cmp_out13);
+    cmp cmp14(CLOCK_50, in_temp_min, bc14, cmp_out14);
+    cmp cmp15(CLOCK_50, in_temp_max, bc15, cmp_out15);
+    cmp cmp16(CLOCK_50, in_temp_min, bc16, cmp_out16);
+    cmp cmp17(CLOCK_50, in_wind, bc17, cmp_out17);
 
     parameter state_0 = 5'b00000;
     parameter state_1 = 5'b00001;
@@ -128,7 +101,7 @@ module decision_tree1 (
     always @ (posedge CLOCK_50) begin
         case(present_state)
             state_0 : begin
-                if (in_precipitation <= 1) begin
+                if (cmp_out0 == 1) begin
                     next_state = state_1;
                 end
                 else begin
@@ -136,7 +109,7 @@ module decision_tree1 (
                 end
             end
             state_1 : begin
-                if (in_temp_max <= 18) begin
+                if (cmp_out1 == 1) begin
                     next_state = state_3;
                 end
                 else begin
@@ -144,7 +117,7 @@ module decision_tree1 (
                 end
             end
             state_2 : begin
-                if (in_wind <= 5) begin
+                if (cmp_out2 == 1) begin
                     next_state = state_5;
                 end
                 else begin
@@ -152,7 +125,7 @@ module decision_tree1 (
                 end
             end
             state_3 : begin
-                if (in_temp_max <= 8) begin
+                if (cmp_out3 == 1) begin
                     next_state = state_7;
                 end
                 else begin
@@ -160,7 +133,7 @@ module decision_tree1 (
                 end
             end
             state_4 : begin
-                if (in_temp_max <= 30) begin
+                if (cmp_out4 == 1) begin
                     next_state = state_9;
                 end
                 else begin
@@ -168,7 +141,7 @@ module decision_tree1 (
                 end
             end
             state_5 : begin
-                if (in_temp_min <= 1) begin
+                if (cmp_out5 == 1) begin
                     next_state = state_10;
                 end
                 else begin
@@ -176,7 +149,7 @@ module decision_tree1 (
                 end
             end
             state_6 : begin
-                if (in_temp_min <= 1) begin
+                if (cmp_out6 == 1) begin
                     tmp_out = 5'b01000; // sonwy
                 end
                 else begin
@@ -184,7 +157,7 @@ module decision_tree1 (
                 end
             end
             state_7 : begin
-                if (in_wind <= 3) begin
+                if (cmp_out7 == 1) begin
                     next_state = state_12;
                 end
                 else begin
@@ -192,7 +165,7 @@ module decision_tree1 (
                 end
             end
             state_8 : begin
-                if (in_wind <= 2) begin
+                if (cmp_out8 == 1) begin
                     next_state = state_14;
                 end
                 else begin
@@ -200,7 +173,7 @@ module decision_tree1 (
                 end
             end
             state_9 : begin
-                if (in_wind <= 2) begin
+                if (cmp_out9 == 1) begin
                     next_state = state_15;
                 end
                 else begin
@@ -208,7 +181,7 @@ module decision_tree1 (
                 end
             end
             state_10 : begin
-                if (in_temp_min <= -1) begin
+                if (cmp_out10 == 1) begin
                     tmp_out = 5'b00100; // rainy
                 end
                 else begin
@@ -216,7 +189,7 @@ module decision_tree1 (
                 end
             end
             state_11 : begin
-                if (in_temp_max <= 7) begin
+                if (cmp_out11 == 1) begin
                     tmp_out = 5'b01000; // snowy
                 end
                 else begin
@@ -224,7 +197,7 @@ module decision_tree1 (
                 end
             end
             state_12 : begin
-                if (in_temp_max <= 4) begin
+                if (cmp_out12 == 1) begin
                     tmp_out = 5'b00001; // drizzle
                 end
                 else begin
@@ -232,7 +205,7 @@ module decision_tree1 (
                 end
             end
             state_13 : begin
-                if (in_temp_min <= 2) begin
+                if (cmp_out13 == 1) begin
                     tmp_out = 5'b10000; // sunny
                 end
                 else begin
@@ -240,7 +213,7 @@ module decision_tree1 (
                 end
             end
             state_14 : begin
-                if (in_temp_min <= 3) begin
+                if (cmp_out14 == 1) begin
                     tmp_out = 5'b10000; // sunny
                 end
                 else begin
@@ -248,7 +221,7 @@ module decision_tree1 (
                 end
             end
             state_15 : begin
-                if (in_temp_max <= 28) begin
+                if (cmp_out15 == 1) begin
                     tmp_out = 5'b10000; // sunny
                 end
                 else begin
@@ -256,7 +229,7 @@ module decision_tree1 (
                 end
             end
             state_16 : begin
-                if (in_temp_min <= 17) begin
+                if (cmp_out16 == 1) begin
                     tmp_out = 5'b10000; // sunny
                 end
                 else begin
@@ -264,7 +237,7 @@ module decision_tree1 (
                 end
             end
             state_17 : begin
-                if (in_wind <= 3) begin
+                if (cmp_out17 == 1) begin
                     tmp_out = 5'b00100; // rainy
                 end
                 else begin
@@ -289,9 +262,51 @@ module decision_tree2 (
     tmp_out);
 
     input CLOCK_50, rst;
-    input[4:0] in_temp_max, in_temp_min,
+    input[31:0] in_temp_max, in_temp_min,
                 in_precipitation, in_wind;
     output reg[4:0] tmp_out;
+    wire cmp_out0, cmp_out1, cmp_out2, cmp_out3, cmp_out4, cmp_out5, cmp_out6, cmp_out7, cmp_out8, 
+        cmp_out9, cmp_out10, cmp_out11, cmp_out12, cmp_out13, cmp_out14, cmp_out15, cmp_out16, cmp_out17, cmp_out18;
+
+    reg [31:0] bc0 = 32'b00111111000000000000000000000000; // 0.5
+    reg [31:0] bc1 = 32'b01000000001000000000000000000000; // 2.5
+    reg [31:0] bc2 = 32'b00111111000000000000000000000000; // 0.5
+    reg [31:0] bc3 = 32'b01000001100001000000000000000000; // 16.5
+    reg [31:0] bc4 = 32'b01000001000010000000000000000000; // 8.5
+    reg [31:0] bc5 = 32'b01000000001000000000000000000000; // 2.5
+    reg [31:0] bc6 = 32'b01000000001000000000000000000000; // 2.5
+    reg [31:0] bc7 = 32'b01000001011110000000000000000000; // 15.5
+    reg [31:0] bc8 = 32'b01000001111011000000000000000000; // 29.5
+    reg [31:0] bc9 = 32'b01000001100110000000000000000000; // 19
+    reg [31:0] bc10 = 32'b01000000100100000000000000000000; // 4.5
+    reg [31:0] bc11 = 32'b00111111110000000000000000000000; // 1.5
+    reg [31:0] bc12 = 32'b01000001101011000000000000000000; // 21.5
+    reg [31:0] bc13 = 32'b01000000001000000000000000000000; // 2.5
+    reg [31:0] bc14 = 32'b00111111110000000000000000000000; // 1.5
+    reg [31:0] bc15 = 32'b01000001001110000000000000000000; // 11.5
+    reg [31:0] bc16 = 32'b01000000101100000000000000000000; // 5.5 
+    reg [31:0] bc17 = 32'b01000000100100000000000000000000; // 4.5
+    reg [31:0] bc18 = 32'b01000001110001000000000000000000; // 24.5
+
+    cmp cmp0(CLOCK_50, in_precipitation, bc0, cmp_out0);
+    cmp cmp1(CLOCK_50, in_wind, bc1, cmp_out1);
+    cmp cmp2(CLOCK_50, in_temp_min, bc2, cmp_out2);
+    cmp cmp3(CLOCK_50, in_temp_max, bc3, cmp_out3);
+    cmp cmp4(CLOCK_50, in_temp_min, bc4, cmp_out4);
+    cmp cmp5(CLOCK_50, in_wind, bc5, cmp_out5);
+    cmp cmp6(CLOCK_50, in_temp_min, bc6, cmp_out6);
+    cmp cmp7(CLOCK_50, in_temp_max, bc7, cmp_out7);
+    cmp cmp8(CLOCK_50, in_temp_max, bc8, cmp_out8);
+    cmp cmp9(CLOCK_50, in_temp_max, bc9, cmp_out9);
+    cmp cmp10(CLOCK_50, in_precipitation, bc10, cmp_out10);
+    cmp cmp11(CLOCK_50, in_wind, bc11, cmp_out11);
+    cmp cmp12(CLOCK_50, in_precipitation, bc12, cmp_out12);
+    cmp cmp13(CLOCK_50, in_temp_min, bc13, cmp_out13);
+    cmp cmp14(CLOCK_50, in_wind, bc14, cmp_out14);
+    cmp cmp15(CLOCK_50, in_temp_min, bc15, cmp_out15);
+    cmp cmp16(CLOCK_50, in_wind, bc16, cmp_out16);
+    cmp cmp17(CLOCK_50, in_temp_max, bc17, cmp_out17);
+    cmp cmp18(CLOCK_50, in_precipitation, bc18, cmp_out18);
 
     parameter state_0 = 5'b00000;
     parameter state_1 = 5'b00001;
@@ -328,7 +343,7 @@ module decision_tree2 (
     always @ (posedge CLOCK_50) begin
        case(present_state)
             state_0 : begin
-                if (in_precipitation <= 1) begin
+                if (cmp_out0 == 1) begin
                     next_state = state_1;
                 end
                 else begin
@@ -336,7 +351,7 @@ module decision_tree2 (
                 end
             end
             state_1 : begin
-                if (in_wind <= 3) begin
+                if (cmp_out1 == 1) begin
                     next_state = state_3;
                 end
                 else begin
@@ -344,7 +359,7 @@ module decision_tree2 (
                 end
             end
             state_2 : begin
-                if (in_temp_min <= 1) begin
+                if (cmp_out2 == 1) begin
                     next_state = state_5;
                 end
                 else begin
@@ -352,7 +367,7 @@ module decision_tree2 (
                 end
             end
             state_3 : begin
-                if (in_temp_max <= 17) begin
+                if (cmp_out3 == 1) begin
                     next_state = state_7;
                 end
                 else begin
@@ -360,7 +375,7 @@ module decision_tree2 (
                 end
             end
             state_4 : begin
-                if (in_temp_min <= 9) begin
+                if (cmp_out4 == 1) begin
                     tmp_out = 5'b10000; // sunny
                 end
                 else begin
@@ -368,7 +383,7 @@ module decision_tree2 (
                 end
             end
             state_5 : begin
-                if (in_wind <= 3) begin
+                if (cmp_out5 == 1) begin
                     tmp_out = 5'b00100; // rainy;
                 end
                 else begin
@@ -376,7 +391,7 @@ module decision_tree2 (
                 end
             end
             state_6 : begin
-                if (in_temp_min <= 3) begin
+                if (cmp_out6 == 1) begin
                     next_state = state_11;
                 end
                 else begin
@@ -384,7 +399,7 @@ module decision_tree2 (
                 end
             end
             state_7 : begin
-                if (in_temp_max <= 16) begin
+                if (cmp_out7 == 1) begin
                     next_state = state_13;
                 end
                 else begin
@@ -392,7 +407,7 @@ module decision_tree2 (
                 end
             end
             state_8 : begin
-                if (in_temp_max <= 30) begin
+                if (cmp_out8 == 1) begin
                     tmp_out = 5'b10000; // sunny
                 end
                 else begin
@@ -400,7 +415,7 @@ module decision_tree2 (
                 end
             end
             state_9 : begin
-                if (in_temp_max <= 19) begin
+                if (cmp_out9 == 1) begin
                     next_state = state_15;
                 end
                 else begin
@@ -408,7 +423,7 @@ module decision_tree2 (
                 end
             end
             state_10 : begin
-                if (in_precipitation <= 5) begin
+                if (cmp_out10 == 1) begin
                     next_state = state_17;
                 end
                 else begin
@@ -416,7 +431,7 @@ module decision_tree2 (
                 end
             end
             state_11 : begin
-                if (in_wind <= 2) begin
+                if (cmp_out11 == 1) begin
                     tmp_out = 5'b01000; // snowy
                 end
                 else begin
@@ -424,7 +439,7 @@ module decision_tree2 (
                 end
             end
             state_12 : begin
-                if (in_precipitation <= 22) begin
+                if (cmp_out12 == 1) begin
                     tmp_out = 5'b00100; // rainy
                 end
                 else begin
@@ -432,7 +447,7 @@ module decision_tree2 (
                 end
             end
             state_13 : begin
-                if (in_temp_min <= 3) begin
+                if (cmp_out13 == 1) begin
                     tmp_out = 5'b10000; // sunny
                 end
                 else begin
@@ -440,7 +455,7 @@ module decision_tree2 (
                 end
             end
             state_14 : begin
-                if (in_wind <= 2) begin
+                if (cmp_out14 == 1) begin
                     tmp_out = 3'b010; //drizzle 
                 end
                 else begin
@@ -448,7 +463,7 @@ module decision_tree2 (
                 end
             end
             state_15 : begin
-                if (in_temp_min <= 12) begin
+                if (cmp_out15 == 1) begin
                     tmp_out = 5'b10000; // sunny
                 end
                 else begin
@@ -456,7 +471,7 @@ module decision_tree2 (
                 end
             end
             state_16 : begin
-                if (in_wind <= 6) begin
+                if (cmp_out16 == 1) begin
                     tmp_out = 5'b10000; // sunny
                 end
                 else begin
@@ -464,7 +479,7 @@ module decision_tree2 (
                 end
             end
             state_17 : begin
-                if (in_temp_max <= 5) begin
+                if (cmp_out17 == 1) begin
                     tmp_out = 5'b01000; // snowy
                 end
                 else begin
@@ -472,7 +487,7 @@ module decision_tree2 (
                 end
             end
             state_18 : begin
-                if (in_precipitation <= 25) begin
+                if (cmp_out18 == 1) begin
                     tmp_out = 5'b01000; // snowy
                 end
                 else begin
@@ -498,9 +513,32 @@ module decision_tree3 (
     tmp_out);
 
     input CLOCK_50, rst;
-    input[4:0] in_temp_max, in_temp_min,
+    input[31:0] in_temp_max, in_temp_min,
                 in_precipitation, in_wind;
     output reg[4:0] tmp_out;
+    wire cmp_out0, cmp_out1, cmp_out2, cmp_out3, cmp_out4, cmp_out5, cmp_out6, cmp_out7, cmp_out8, cmp_out9;
+
+    reg [31:0] bc0 = 32'b00111111000000000000000000000000; // 0.5
+    reg [31:0] bc1 = 32'b00111111110000000000000000000000; // 1.5
+    reg [31:0] bc2 = 32'b00111111000000000000000000000000; // 0.5
+    reg [31:0] bc3 = 32'b01000001100001000000000000000000; // 16.5
+    reg [31:0] bc4 = 32'b01000000101100000000000000000000; // 5.5
+    reg [31:0] bc5 = 32'b01000000101100000000000000000000; // 5.5
+    reg [31:0] bc6 = 32'b01000000101100000000000000000000; // 5.5
+    reg [31:0] bc7 = 32'b01000000111100000000000000000000; // 7.5
+    reg [31:0] bc8 = 32'b01000001001010000000000000000000; // 10.5
+    reg [31:0] bc9 = 32'b01000001001110000000000000000000; // 11.5
+
+    cmp cmp0(CLOCK_50, in_precipitation, bc0, cmp_out0);
+    cmp cmp1(CLOCK_50, in_wind, bc1, cmp_out1);
+    cmp cmp2(CLOCK_50, in_temp_min, bc2, cmp_out2);
+    cmp cmp3(CLOCK_50, in_temp_max, bc3, cmp_out3);
+    cmp cmp4(CLOCK_50, in_temp_max, bc4, cmp_out4);
+    cmp cmp5(CLOCK_50, in_temp_max, bc5, cmp_out5);
+    cmp cmp6(CLOCK_50, in_temp_max, bc6, cmp_out6);
+    cmp cmp7(CLOCK_50, in_temp_max, bc7, cmp_out7);
+    cmp cmp8(CLOCK_50, in_precipitation, bc8, cmp_out8);
+    cmp cmp9(CLOCK_50, in_temp_min, bc9, cmp_out9);
 
     parameter state_0 = 5'b00000;
     parameter state_1 = 5'b00001;
@@ -528,7 +566,7 @@ module decision_tree3 (
     always @ (posedge CLOCK_50) begin
        case(present_state)
             state_0 : begin
-                if (in_precipitation <= 1) begin
+                if (cmp_out0 == 1) begin
                     next_state = state_1;
                 end
                 else begin
@@ -536,7 +574,7 @@ module decision_tree3 (
                 end
             end
             state_1 : begin
-                if (in_wind <= 2) begin
+                if (cmp_out1 == 1) begin
                     tmp_out = 5'b10000; // sunny;
                 end
                 else begin
@@ -544,7 +582,7 @@ module decision_tree3 (
                 end
             end
             state_2 : begin
-                if (in_temp_min <= 1) begin
+                if (cmp_out2 == 1) begin
                     next_state = state_4;
                 end
                 else begin
@@ -552,7 +590,7 @@ module decision_tree3 (
                 end
             end
             state_3 : begin
-                if (in_temp_max <= 17) begin
+                if (cmp_out3 == 1) begin
                     next_state = state_6;
                 end
                 else begin
@@ -560,7 +598,7 @@ module decision_tree3 (
                 end
             end
             state_4 : begin
-                if (in_temp_max <= 6) begin
+                if (cmp_out4 == 1) begin
                     tmp_out = 5'b01000; // snowy
                 end
                 else begin
@@ -568,7 +606,7 @@ module decision_tree3 (
                 end
             end
             state_5 : begin
-                if (in_temp_max <= 6) begin
+                if (cmp_out5 == 1) begin
                     next_state = state_8;
                 end
                 else begin
@@ -576,7 +614,7 @@ module decision_tree3 (
                 end
             end
             state_6 : begin
-                if (in_temp_max <= 6) begin
+                if (cmp_out6 == 1) begin
                     tmp_out = 5'b10000; // sunny
                 end
                 else begin
@@ -584,7 +622,7 @@ module decision_tree3 (
                 end
             end
             state_7 : begin
-                if (in_temp_max <= 8) begin
+                if (cmp_out7 == 1) begin
                     tmp_out = 5'b00100; // rainy
                 end
                 else begin
@@ -592,7 +630,7 @@ module decision_tree3 (
                 end
             end
             state_8 : begin
-                if (in_precipitation <= 11) begin
+                if (cmp_out8 == 1) begin
                     tmp_out = 5'b00100; // rainy
                 end
                 else begin
@@ -600,7 +638,7 @@ module decision_tree3 (
                 end
             end
             state_9 : begin
-                if (in_temp_min <= 12) begin
+                if (cmp_out9 == 1) begin
                     tmp_out = 5'b10000; // sunny
                 end
                 else begin
@@ -626,9 +664,37 @@ module decision_tree4 (
     tmp_out);
 
     input CLOCK_50, rst;
-    input[4:0] in_temp_max, in_temp_min,
+    input[31:0] in_temp_max, in_temp_min,
                 in_precipitation, in_wind;
     output reg[4:0] tmp_out;
+    wire cmp_out0, cmp_out1, cmp_out2, cmp_out3, cmp_out4, cmp_out5, cmp_out6, cmp_out7, cmp_out8, 
+        cmp_out9, cmp_out10, cmp_out11;
+
+    reg [31:0] bc0 = 32'b00111111000000000000000000000000; // 0.5
+    reg [31:0] bc1 = 32'b00111111110000000000000000000000; // 1.5
+    reg [31:0] bc2 = 32'b00111111000000000000000000000000; // 0.5
+    reg [31:0] bc3 = 32'b01000000011000000000000000000000; // 3.5
+    reg [31:0] bc4 = 32'b01000001100011000000000000000000; // 17.5
+    reg [31:0] bc5 = 32'b01000000100100000000000000000000; // 4.5
+    reg [31:0] bc6 = 32'b01000000001000000000000000000000; // 2.5
+    reg [31:0] bc7 = 32'b01000000110100000000000000000000; // 6.5
+    reg [31:0] bc8 = 32'b01000000100000000000000000000000; // 4.0
+    reg [31:0] bc9 = 32'b01000001001100000000000000000000; // 11.0
+    reg [31:0] bc10 = 32'b00111111110000000000000000000000; // 1.5
+    reg [31:0] bc11 = 32'b01000000101100000000000000000000; // 5.5
+    
+    cmp cmp0(CLOCK_50, in_precipitation, bc0, cmp_out0);
+    cmp cmp1(CLOCK_50, in_wind, bc1, cmp_out1);
+    cmp cmp2(CLOCK_50, in_temp_min, bc2, cmp_out2);
+    cmp cmp3(CLOCK_50, in_temp_max, bc3, cmp_out3);
+    cmp cmp4(CLOCK_50, in_temp_max, bc4, cmp_out4);
+    cmp cmp5(CLOCK_50, in_precipitation, bc5, cmp_out5);
+    cmp cmp6(CLOCK_50, in_temp_max, bc6, cmp_out6);
+    cmp cmp7(CLOCK_50, in_temp_max, bc7, cmp_out7);
+    cmp cmp8(CLOCK_50, in_wind, bc8, cmp_out8);
+    cmp cmp9(CLOCK_50, in_precipitation, bc9, cmp_out9);
+    cmp cmp10(CLOCK_50, in_temp_max, bc10, cmp_out10);
+    cmp cmp11(CLOCK_50, in_wind, bc11, cmp_out11);
 
     parameter state_0 = 5'b00000;
     parameter state_1 = 5'b00001;
@@ -658,7 +724,7 @@ module decision_tree4 (
     always @ (posedge CLOCK_50) begin
        case(present_state)
             state_0 : begin
-                if (in_precipitation <= 1) begin
+                if (cmp_out0 == 1) begin
                     next_state = state_1;
                 end
                 else begin
@@ -666,7 +732,7 @@ module decision_tree4 (
                 end
             end
             state_1 : begin
-                if (in_wind <= 2) begin
+                if (cmp_out1 == 1) begin
                     next_state = state_3;
                 end
                 else begin
@@ -674,7 +740,7 @@ module decision_tree4 (
                 end
             end
             state_2 : begin
-                if (in_temp_min <= 1) begin
+                if (cmp_out2 == 1) begin
                     next_state = state_5;
                 end
                 else begin
@@ -682,7 +748,7 @@ module decision_tree4 (
                 end
             end
             state_3 : begin
-                if (in_temp_max <= 4) begin
+                if (cmp_out3 == 1) begin
                     next_state = state_6;
                 end
                 else begin
@@ -690,7 +756,7 @@ module decision_tree4 (
                 end
             end
             state_4 : begin
-                if (in_temp_max <= 18) begin
+                if (cmp_out4 == 1) begin
                     next_state = state_7;
                 end
                 else begin
@@ -698,7 +764,7 @@ module decision_tree4 (
                 end
             end
             state_5 : begin
-                if (in_precipitation <= 5) begin
+                if (cmp_out5 == 1) begin
                     next_state = state_8;
                 end
                 else begin
@@ -706,7 +772,7 @@ module decision_tree4 (
                 end
             end
             state_6 : begin
-                if (in_temp_max <= 3) begin
+                if (cmp_out6 == 1) begin
                     next_state = state_10;
                 end
                 else begin
@@ -714,7 +780,7 @@ module decision_tree4 (
                 end
             end
             state_7 : begin
-                if (in_temp_max <= 7) begin
+                if (cmp_out7 == 1) begin
                     tmp_out = 5'b10000; // sunny
                 end
                 else begin
@@ -722,7 +788,7 @@ module decision_tree4 (
                 end
             end
             state_8 : begin
-                if (in_wind <= 4) begin
+                if (cmp_out8 == 1) begin
                     tmp_out = 5'b00100; // rainy
                 end
                 else begin
@@ -730,7 +796,7 @@ module decision_tree4 (
                 end
             end
             state_9 : begin
-                if (in_precipitation <= 11) begin
+                if (cmp_out9 == 1) begin
                     tmp_out = 5'b01000; // snowy
                 end
                 else begin
@@ -738,7 +804,7 @@ module decision_tree4 (
                 end
             end
             state_10 : begin
-                if (in_temp_max <= 2) begin
+                if (cmp_out10 == 1) begin
                     tmp_out = 3'b010; // drizzle
                 end
                 else begin
@@ -746,7 +812,7 @@ module decision_tree4 (
                 end
             end
             state_11 : begin
-                if (in_wind <= 6) begin
+                if (cmp_out11 == 1) begin
                     tmp_out = 5'b10000; // sunny
                 end
                 else begin
@@ -772,9 +838,53 @@ module decision_tree5 (
     tmp_out);
 
     input CLOCK_50, rst;
-    input[4:0] in_temp_max, in_temp_min,
+    input[31:0] in_temp_max, in_temp_min,
                 in_precipitation, in_wind;
     output reg[4:0] tmp_out;
+    wire cmp_out0, cmp_out1, cmp_out2, cmp_out3, cmp_out4, cmp_out5, cmp_out6, cmp_out7, cmp_out8, 
+        cmp_out9, cmp_out10, cmp_out11, cmp_out12, cmp_out13, cmp_out14, cmp_out15, cmp_out16, cmp_out17;
+
+    reg [31:0] bc0 = 32'b00111111000000000000000000000000; // 0.5
+    reg [31:0] bc1 = 32'b00111111110000000000000000000000; // 1.5
+    reg [31:0] bc2 = 32'b00111111000000000000000000000000; // 0.5
+    reg [31:0] bc3 = 32'b01000001100111000000000000000000; // 19.5
+    reg [31:0] bc4 = 32'b01000001100001000000000000000000; // 16.5
+    reg [31:0] bc5 = 32'b01000000001000000000000000000000; // 2.5
+    reg [31:0] bc6 = 32'b01000000001000000000000000000000; // 2.5
+    reg [31:0] bc7 = 32'b01000000001000000000000000000000; // 2.5
+    reg [31:0] bc8 = 32'b01000000001000000000000000000000; // 2.5
+    reg [31:0] bc9 = 32'b01000001100111000000000000000000; // 19.5
+    reg [31:0] bc10 = 32'b01000000100000000000000000000000; // 4
+    reg [31:0] bc11 = 32'b00111111110000000000000000000000; // 1.5
+    reg [31:0] bc12 = 32'b01000001101011000000000000000000; // 21.5
+    reg [31:0] bc13 = 32'b01000000111100000000000000000000; // 7.5
+    reg [31:0] bc14 = 32'b01000000011000000000000000000000; // 3.5
+    reg [31:0] bc15 = 32'b01000001001010000000000000000000; // 10.5
+    reg [31:0] bc16 = 32'b01000000101100000000000000000000; // 5.5
+    reg [31:0] bc17 = 32'b10111111000000000000000000000000; // -0.5
+    reg [31:0] bc18 = 32'b01000000010000000000000000000000; // 3.0
+    reg [31:0] bc19 = 32'b01000001101101000000000000000000; // 22.5
+
+    cmp cmp0(CLOCK_50, in_precipitation, bc0, cmp_out0);
+    cmp cmp1(CLOCK_50, in_wind, bc1, cmp_out1);
+    cmp cmp2(CLOCK_50, in_temp_min, bc2, cmp_out2);
+    cmp cmp3(CLOCK_50, in_temp_max, bc3, cmp_out3);
+    cmp cmp4(CLOCK_50, in_temp_max, bc4, cmp_out4);
+    cmp cmp5(CLOCK_50, iin_wind, bc5, cmp_out5);
+    cmp cmp6(CLOCK_50, in_temp_min, bc6, cmp_out6);
+    cmp cmp7(CLOCK_50, in_temp_min, bc7, cmp_out7);
+    cmp cmp8(CLOCK_50, in_wind, bc8, cmp_out8);
+    cmp cmp9(CLOCK_50, in_temp_max, bc9, cmp_out9);
+    cmp cmp10(CLOCK_50, in_wind, bc10, cmp_out10);
+    cmp cmp11(CLOCK_50, in_wind, bc11, cmp_out11);
+    cmp cmp12(CLOCK_50, in_precipitation, bc12, cmp_out12);
+    cmp cmp13(CLOCK_50, in_temp_min, bc13, cmp_out13);
+    cmp cmp14(CLOCK_50, in_temp_max, bc14, cmp_out14);
+    cmp cmp15(CLOCK_50, in_temp_max, bc15, cmp_out15);
+    cmp cmp16(CLOCK_50, in_wind, bc16, cmp_out16);
+    cmp cmp17(CLOCK_50, in_temp_min, bc17, cmp_out17);
+    cmp cmp18(CLOCK_50, in_precipitation, bc18, cmp_out18);
+    cmp cmp19(CLOCK_50, in_precipitation, bc19, cmp_out19);
 
     parameter state_0 = 5'b00000;
     parameter state_1 = 5'b00001;
@@ -812,7 +922,7 @@ module decision_tree5 (
     always @ (posedge CLOCK_50) begin
        case(present_state)
             state_0 : begin
-                if (in_precipitation <= 1) begin
+                if (cmp_out0 == 1) begin
                     next_state = state_1;
                 end
                 else begin
@@ -820,7 +930,7 @@ module decision_tree5 (
                 end
             end
             state_1 : begin
-                if (in_wind <= 2) begin
+                if (cmp_out1 == 1) begin
                     next_state = state_3;
                 end
                 else begin
@@ -828,7 +938,7 @@ module decision_tree5 (
                 end
             end
             state_2 : begin
-                if (in_temp_min <= 1) begin
+                if (cmp_out2 == 1) begin
                     next_state = state_5;
                 end
                 else begin
@@ -836,7 +946,7 @@ module decision_tree5 (
                 end
             end
             state_3 : begin
-                if (in_temp_max <= 20) begin
+                if (cmp_out3 == 1) begin
                     next_state = state_7;
                 end
                 else begin
@@ -844,7 +954,7 @@ module decision_tree5 (
                 end
             end
             state_4 : begin
-                if (in_temp_max <= 17) begin
+                if (cmp_out4 == 1) begin
                     next_state = state_8;
                 end
                 else begin
@@ -852,7 +962,7 @@ module decision_tree5 (
                 end
             end
             state_5 : begin
-                if (in_wind <= 3) begin
+                if (cmp_out5 == 1) begin
                     tmp_out = 5'b00100; // rainy;
                 end
                 else begin
@@ -860,7 +970,7 @@ module decision_tree5 (
                 end
             end
             state_6 : begin
-                if (in_temp_min <= 3) begin
+                if (cmp_out6 == 1) begin
                     next_state = state_11;
                 end
                 else begin
@@ -868,7 +978,7 @@ module decision_tree5 (
                 end
             end
             state_7 : begin
-                if (in_temp_min <= 3) begin
+                if (cmp_out7 == 1) begin
                     tmp_out = 5'b10000; // sunny
                 end
                 else begin
@@ -876,7 +986,7 @@ module decision_tree5 (
                 end
             end
             state_8 : begin
-                if (in_wind <= 3) begin
+                if (cmp_out8 == 1) begin
                     next_state = state_14;
                 end
                 else begin
@@ -884,7 +994,7 @@ module decision_tree5 (
                 end
             end
             state_9 : begin
-                if (in_temp_max <= 20) begin
+                if (cmp_out9 == 1) begin
                     tmp_out = 5'b10000; // sunny
                 end
                 else begin
@@ -892,7 +1002,7 @@ module decision_tree5 (
                 end
             end
             state_10 : begin
-                if (in_wind <= 4) begin
+                if (cmp_out10 == 1) begin
                     next_state = state_17;
                 end
                 else begin
@@ -900,7 +1010,7 @@ module decision_tree5 (
                 end
             end
             state_11 : begin
-                if (in_wind <= 2) begin
+                if (cmp_out11 == 1) begin
                     next_state = state_18;
                 end
                 else begin
@@ -908,7 +1018,7 @@ module decision_tree5 (
                 end
             end
             state_12 : begin
-                if (in_precipitation <= 22) begin
+                if (cmp_out12 == 1) begin
                     tmp_out = 5'b00100; // rainy
                 end
                 else begin
@@ -916,7 +1026,7 @@ module decision_tree5 (
                 end
             end
             state_13 : begin
-                if (in_temp_min <= 8) begin
+                if (cmp_out13 == 1) begin
                     tmp_out = 5'b10000; // sunny
                 end
                 else begin
@@ -924,7 +1034,7 @@ module decision_tree5 (
                 end
             end
             state_14 : begin
-                if (in_temp_max <= 4) begin
+                if (cmp_out14 == 1) begin
                     tmp_out = 3'b010; //drizzle 
                 end
                 else begin
@@ -932,7 +1042,7 @@ module decision_tree5 (
                 end
             end
             state_15 : begin
-                if (in_temp_max <= 11) begin
+                if (cmp_out15 == 1) begin
                     tmp_out = 5'b10000; // sunny
                 end
                 else begin
@@ -940,7 +1050,7 @@ module decision_tree5 (
                 end
             end
             state_16 : begin
-                if (in_wind <= 6) begin
+                if (cmp_out16 == 1) begin
                     tmp_out = 5'b10000; // sunny
                 end
                 else begin
@@ -948,7 +1058,7 @@ module decision_tree5 (
                 end
             end
             state_17 : begin
-                if (in_temp_min <= -1) begin
+                if (cmp_out17 == 1) begin
                     tmp_out = 5'b00100; // rainy
                 end
                 else begin
@@ -956,7 +1066,7 @@ module decision_tree5 (
                 end
             end
             state_18 : begin
-                if (in_precipitation <= 3) begin
+                if (cmp_out18 == 1) begin
                     tmp_out = 5'b00100; // rainy
                 end
                 else begin
@@ -964,7 +1074,7 @@ module decision_tree5 (
                 end
             end
             state_19 : begin
-                if (in_precipitation <= 23) begin
+                if (cmp_out19 == 1) begin
                     tmp_out = 5'b01000; // snowy
                 end
                 else begin
@@ -990,9 +1100,45 @@ module decision_tree6 (
     tmp_out);
 
     input CLOCK_50, rst;
-    input[4:0] in_temp_max, in_temp_min,
+    input[31:0] in_temp_max, in_temp_min,
                 in_precipitation, in_wind;
     output reg[4:0] tmp_out;
+    wire cmp_out0, cmp_out1, cmp_out2, cmp_out3, cmp_out4, cmp_out5, cmp_out6, cmp_out7, cmp_out8, 
+        cmp_out9, cmp_out10, cmp_out11, cmp_out12, cmp_out13, cmp_out14;
+
+    reg [31:0] bc0 = 32'b01000001011110000000000000000000; // 15.5
+    reg [31:0] bc1 = 32'b00111111110000000000000000000000; // 1.5
+    reg [31:0] bc2 = 32'b00111111000000000000000000000000; // 0.5
+    reg [31:0] bc3 = 32'b00111111000000000000000000000000; // 0.5
+    reg [31:0] bc4 = 32'b01000001001110000000000000000000; // 11.5
+    reg [31:0] bc5 = 32'b01000001100101000000000000000000; // 18.5
+    reg [31:0] bc6 = 32'b01000000100100000000000000000000; // 4.5
+    reg [31:0] bc7 = 32'b01000000100100000000000000000000; // 4.5
+    reg [31:0] bc8 = 32'b01000001100011000000000000000000; // 17.5
+    reg [31:0] bc9 = 32'b01000000101100000000000000000000; // 5.5
+    reg [31:0] bc10 = 32'b01000001111001000000000000000000; // 28.5
+    reg [31:0] bc11 = 32'b01000000011000000000000000000000; // 3.5
+    reg [31:0] bc12 = 32'b00111111110000000000000000000000; // 1.5
+    reg [31:0] bc13 = 32'b00111111110000000000000000000000; // 1.5
+    reg [31:0] bc14 = 32'b00111111110000000000000000000000; // 1.5
+
+
+    cmp cmp0(CLOCK_50, in_temp_max, bc0, cmp_out0);
+    cmp cmp1(CLOCK_50, in_temp_min, bc1, cmp_out1);
+    cmp cmp2(CLOCK_50, in_precipitation, bc2, cmp_out2);
+    cmp cmp3(CLOCK_50, in_precipitation, bc3, cmp_out3);
+    cmp cmp4(CLOCK_50, in_temp_max, bc4, cmp_out4);
+    cmp cmp5(CLOCK_50, in_temp_max, bc5, cmp_out5);
+    cmp cmp6(CLOCK_50, in_wind, bc6, cmp_out6);
+    cmp cmp7(CLOCK_50, in_temp_min, bc7, cmp_out7);
+    cmp cmp8(CLOCK_50, in_temp_max, bc8, cmp_out8);
+    cmp cmp9(CLOCK_50, in_wind, bc9, cmp_out9);
+    cmp cmp10(CLOCK_50, in_precipitation, bc10, cmp_out10);
+    cmp cmp11(CLOCK_50, in_temp_min, bc11, cmp_out11);
+    cmp cmp12(CLOCK_50, in_wind, bc12, cmp_out12);
+    cmp cmp13(CLOCK_50, in_wind, bc13, cmp_out13);
+    cmp cmp14(CLOCK_50, in_wind, bc14, cmp_out14);
+
 
     parameter state_0 = 5'b00000;
     parameter state_1 = 5'b00001;
@@ -1025,7 +1171,7 @@ module decision_tree6 (
     always @ (posedge CLOCK_50) begin
        case(present_state)
             state_0 : begin
-                if (in_temp_max <= 16) begin
+                if (cmp_out0 == 1) begin
                     next_state = state_1;
                 end
                 else begin
@@ -1033,7 +1179,7 @@ module decision_tree6 (
                 end
             end
             state_1 : begin
-                if (in_temp_min <= 2) begin
+                if (cmp_out1 == 1) begin
                     next_state = state_3;
                 end
                 else begin
@@ -1041,7 +1187,7 @@ module decision_tree6 (
                 end
             end
             state_2 : begin
-                if (in_precipitation <= 1) begin
+                if (cmp_out2 == 1) begin
                     next_state = state_5;
                 end
                 else begin
@@ -1049,7 +1195,7 @@ module decision_tree6 (
                 end
             end
             state_3 : begin
-                if (in_precipitation <= 1) begin
+                if (cmp_out3 == 1) begin
                     tmp_out = 5'b10000; // sunny
                 end
                 else begin
@@ -1057,7 +1203,7 @@ module decision_tree6 (
                 end
             end
             state_4 : begin
-                if (in_temp_max <= 12) begin
+                if (cmp_out4 == 1) begin
                     tmp_out = 5'b00100; // rainy
                 end
                 else begin
@@ -1065,7 +1211,7 @@ module decision_tree6 (
                 end
             end
             state_5 : begin
-                if (in_temp_max <= 19) begin
+                if (cmp_out5 == 1) begin
                     next_state = state_8;
                 end
                 else begin
@@ -1073,7 +1219,7 @@ module decision_tree6 (
                 end
             end
             state_6 : begin
-                if (in_wind <= 5) begin
+                if (cmp_out6 == 1) begin
                     tmp_out = 5'b00100; // rainy
                 end
                 else begin
@@ -1081,7 +1227,7 @@ module decision_tree6 (
                 end
             end
             state_7 : begin
-                if (in_temp_min <= 5) begin
+                if (cmp_out7 == 1) begin
                     next_state = state_11;
                 end
                 else begin
@@ -1089,7 +1235,7 @@ module decision_tree6 (
                 end
             end
             state_8 : begin
-                if (in_temp_max <= 18) begin
+                if (cmp_out8 == 1) begin
                     next_state = state_13;
                 end
                 else begin
@@ -1097,7 +1243,7 @@ module decision_tree6 (
                 end
             end
             state_9 : begin
-                if (in_wind <= 6) begin
+                if (cmp_out9 == 1) begin
                     tmp_out = 5'b10000; // sunny
                 end
                 else begin
@@ -1105,7 +1251,7 @@ module decision_tree6 (
                 end
             end
             state_10 : begin
-                if (in_precipitation <= 29) begin
+                if (cmp_out10 == 1) begin
                     tmp_out = 5'b01000; // snowy
                 end
                 else begin
@@ -1113,7 +1259,7 @@ module decision_tree6 (
                 end
             end
             state_11 : begin
-                if (in_temp_min <= 4) begin
+                if (cmp_out11 == 1) begin
                     tmp_out = 5'b10000; // sunny
                 end
                 else begin
@@ -1121,7 +1267,7 @@ module decision_tree6 (
                 end
             end
             state_12 : begin
-                if (in_wind <= 2) begin
+                if (cmp_out12 == 1) begin
                     tmp_out = 5'b10000; // sunny
                 end
                 else begin
@@ -1129,7 +1275,7 @@ module decision_tree6 (
                 end
             end
             state_13 : begin
-                if (in_wind <= 2) begin
+                if (cmp_out13 == 1) begin
                     tmp_out = 5'b00010; // foggy
                 end
                 else begin
@@ -1137,7 +1283,7 @@ module decision_tree6 (
                 end
             end
             state_14 : begin
-                if (in_wind <= 2) begin
+                if (cmp_out14 == 1) begin
                      tmp_out = 5'b00010; // foggy
                 end
                 else begin
@@ -1163,9 +1309,43 @@ module decision_tree7 (
     tmp_out);
 
     input CLOCK_50, rst;
-    input[4:0] in_temp_max, in_temp_min,
+    input[31:0] in_temp_max, in_temp_min,
                 in_precipitation, in_wind;
     output reg[4:0] tmp_out;
+    wire cmp_out0, cmp_out1, cmp_out2, cmp_out3, cmp_out4, cmp_out5, cmp_out6, cmp_out7, cmp_out8, 
+        cmp_out9, cmp_out10, cmp_out11, cmp_out12, cmp_out13, cmp_out14;
+
+    reg [31:0] bc0 = 32'b01000001100111000000000000000000; // 19.5
+    reg [31:0] bc1 = 32'b00111111000000000000000000000000; // 0.5
+    reg [31:0] bc2 = 32'b00111111000000000000000000000000; // 0.5
+    reg [31:0] bc3 = 32'b01000000110100000000000000000000; // 6.5
+    reg [31:0] bc4 = 32'b01000000100100000000000000000000; // 4.5
+    reg [31:0] bc5 = 32'b01000001101101000000000000000000; // 22.5
+    reg [31:0] bc6 = 32'b10111111000000000000000000000000; // -0.5
+    reg [31:0] bc7 = 32'b00111111110000000000000000000000; // 1.5
+    reg [31:0] bc8 = 32'b01000000011000000000000000000000; // 3.5
+    reg [31:0] bc9 = 32'b01000001101011000000000000000000; // 21.5
+    reg [31:0] bc10 = 32'b01000001010010000000000000000000; // 12.5
+    reg [31:0] bc11 = 32'b00111111110000000000000000000000; // 1.5
+    reg [31:0] bc12 = 32'b01000000001000000000000000000000; // 2.5
+    reg [31:0] bc13 = 32'b01000000111000000000000000000000; // 7.0
+    reg [31:0] bc14 = 32'b01000001011010000000000000000000; // 14.5
+
+    cmp cmp0(CLOCK_50, in_temp_max, bc0, cmp_out0);
+    cmp cmp1(CLOCK_50, in_precipitation, bc1, cmp_out1);
+    cmp cmp2(CLOCK_50, in_precipitation, bc2, cmp_out2);
+    cmp cmp3(CLOCK_50, in_temp_max, bc3, cmp_out3);
+    cmp cmp4(CLOCK_50, in_temp_max, bc4, cmp_out4);
+    cmp cmp5(CLOCK_50, in_temp_max, bc5, cmp_out5);
+    cmp cmp6(CLOCK_50, in_temp_min, bc6, cmp_out6);
+    cmp cmp7(CLOCK_50, in_wind, bc7, cmp_out7);
+    cmp cmp8(CLOCK_50, in_wind, bc8, cmp_out8);
+    cmp cmp9(CLOCK_50, in_precipitation, bc9, cmp_out9);
+    cmp cmp10(CLOCK_50, in_temp_min, bc10, cmp_out10);
+    cmp cmp11(CLOCK_50, in_wind, bc11, cmp_out11);
+    cmp cmp12(CLOCK_50, in_temp_min, bc12, cmp_out12);
+    cmp cmp13(CLOCK_50, in_temp_max, bc13, cmp_out13);
+    cmp cmp14(CLOCK_50, in_temp_min, bc14, cmp_out14);
 
     parameter state_0 = 5'b00000;
     parameter state_1 = 5'b00001;
@@ -1198,7 +1378,7 @@ module decision_tree7 (
     always @ (posedge CLOCK_50) begin
        case(present_state)
             state_0 : begin
-                if (in_temp_max <= 20) begin
+                if (cmp_out0 == 1) begin
                     next_state = state_1;
                 end
                 else begin
@@ -1206,7 +1386,7 @@ module decision_tree7 (
                 end
             end
             state_1 : begin
-                if (in_precipitation <= 1) begin
+                if (cmp_out1 == 1) begin
                     next_state = state_3;
                 end
                 else begin
@@ -1214,7 +1394,7 @@ module decision_tree7 (
                 end
             end
             state_2 : begin
-                if (in_precipitation <= 1) begin
+                if (cmp_out2 == 1) begin
                     next_state = state_5;
                 end
                 else begin
@@ -1222,7 +1402,7 @@ module decision_tree7 (
                 end
             end
             state_3 : begin
-                if (in_temp_max <= 7) begin
+                if (cmp_out3 == 1) begin
                     next_state = state_6;
                 end
                 else begin
@@ -1230,7 +1410,7 @@ module decision_tree7 (
                 end
             end
             state_4 : begin
-                if (in_temp_max <= 5) begin
+                if (cmp_out4 == 1) begin
                     next_state = state_8;
                 end
                 else begin
@@ -1238,7 +1418,7 @@ module decision_tree7 (
                 end
             end
             state_5 : begin
-                if (in_temp_max <= 23) begin
+                if (cmp_out5 == 1) begin
                     next_state = state_10;
                 end
                 else begin
@@ -1246,7 +1426,7 @@ module decision_tree7 (
                 end
             end
             state_6 : begin
-                if (in_temp_min <= -1) begin
+                if (cmp_out6 == 1) begin
                     tmp_out = 5'b10000; // sunny
                 end
                 else begin
@@ -1254,7 +1434,7 @@ module decision_tree7 (
                 end
             end
             state_7 : begin
-                if (in_wind <= 2) begin
+                if (cmp_out7 == 1) begin
                     next_state = state_12;
                 end
                 else begin
@@ -1262,7 +1442,7 @@ module decision_tree7 (
                 end
             end
             state_8 : begin
-                if (in_wind <= 4) begin
+                if (cmp_out8 == 1) begin
                     tmp_out = 5'b00100; // rainy
                 end
                 else begin
@@ -1270,7 +1450,7 @@ module decision_tree7 (
                 end
             end
             state_9 : begin
-                if (in_wind <= 6) begin
+                if (cmp_out9 == 1) begin
                     tmp_out = 5'b00100; // rainy
                 end
                 else begin
@@ -1278,7 +1458,7 @@ module decision_tree7 (
                 end
             end
             state_10 : begin
-                if (in_temp_min <= 13) begin
+                if (cmp_out10 == 1) begin
                     tmp_out = 5'b10000; // sunny
                 end
                 else begin
@@ -1286,7 +1466,7 @@ module decision_tree7 (
                 end
             end
             state_11 : begin
-                if (in_wind <= 2) begin
+                if (cmp_out11 == 1) begin
                     tmp_out = 5'b00010; // foggy
                 end
                 else begin
@@ -1294,7 +1474,7 @@ module decision_tree7 (
                 end
             end
             state_12 : begin
-                if (in_temp_min <= 3) begin
+                if (cmp_out12 == 1) begin
                     tmp_out = 5'b10000; // sunny
                 end
                 else begin
@@ -1302,7 +1482,7 @@ module decision_tree7 (
                 end
             end
             state_13 : begin
-                if (in_temp_max <= 7) begin
+                if (cmp_out13 == 1) begin
                     tmp_out = 5'b01000; // snowy
                 end
                 else begin
@@ -1310,7 +1490,7 @@ module decision_tree7 (
                 end
             end
             state_14 : begin
-                if (in_temp_min <= 15) begin
+                if (cmp_out14 == 1) begin
                      tmp_out = 5'b10000; // sunny
                 end
                 else begin
@@ -1336,9 +1516,37 @@ module decision_tree8 (
     tmp_out);
 
     input CLOCK_50, rst;
-    input[4:0] in_temp_max, in_temp_min,
+    input[31:0] in_temp_max, in_temp_min,
                 in_precipitation, in_wind;
     output reg[4:0] tmp_out;
+    wire cmp_out0, cmp_out1, cmp_out2, cmp_out3, cmp_out4, cmp_out5, cmp_out6, cmp_out7, cmp_out8, 
+        cmp_out9, cmp_out10, cmp_out11;
+
+    reg [31:0] bc0 = 32'b00111111000000000000000000000000; // 0.5
+    reg [31:0] bc1 = 32'b01000001100111000000000000000000; // 19.5
+    reg [31:0] bc2 = 32'b00111111000000000000000000000000; // 0.5
+    reg [31:0] bc3 = 32'b01000000001000000000000000000000; // 2.5
+    reg [31:0] bc4 = 32'b01000000101100000000000000000000; // 5.5
+    reg [31:0] bc5 = 32'b01000000100100000000000000000000; // 4.5
+    reg [31:0] bc6 = 32'b11000000011000000000000000000000; // -3.5
+    reg [31:0] bc7 = 32'b00111111110000000000000000000000; // 1.5
+    reg [31:0] bc8 = 32'b01000001000100000000000000000000; // 9.0
+    reg [31:0] bc9 = 32'b11000000001000000000000000000000; // -2.5
+    reg [31:0] bc10 = 32'b01000001000010000000000000000000; // 8.5
+    reg [31:0] bc11 = 32'b01000000100100000000000000000000; // 4.5
+
+    cmp cmp0(CLOCK_50, in_precipitation, bc0, cmp_out0);
+    cmp cmp1(CLOCK_50, in_temp_max, bc1, cmp_out1);
+    cmp cmp2(CLOCK_50, in_temp_min, bc2, cmp_out2);
+    cmp cmp3(CLOCK_50, in_temp_min, bc3, cmp_out3);
+    cmp cmp4(CLOCK_50, in_wind, bc4, cmp_out4);
+    cmp cmp5(CLOCK_50, in_temp_max, bc5, cmp_out5);
+    cmp cmp6(CLOCK_50, in_temp_min, bc6, cmp_out6);
+    cmp cmp7(CLOCK_50, in_wind, bc7, cmp_out7);
+    cmp cmp8(CLOCK_50, in_temp_max, bc8, cmp_out8);
+    cmp cmp9(CLOCK_50, in_temp_min, bc9, cmp_out9);
+    cmp cmp10(CLOCK_50, in_temp_max, bc10, cmp_out10);
+    cmp cmp11(CLOCK_50, in_precipitation, bc11, cmp_out11);
 
     parameter state_0 = 5'b00000;
     parameter state_1 = 5'b00001;
@@ -1368,7 +1576,7 @@ module decision_tree8 (
     always @ (posedge CLOCK_50) begin
        case(present_state)
             state_0 : begin
-                if (in_precipitation <= 1) begin
+                if (cmp_out0 == 1) begin
                     next_state = state_1;
                 end
                 else begin
@@ -1376,7 +1584,7 @@ module decision_tree8 (
                 end
             end
             state_1 : begin
-                if (in_temp_max <= 20) begin
+                if (cmp_out1 == 1) begin
                     next_state = state_3;
                 end
                 else begin
@@ -1384,7 +1592,7 @@ module decision_tree8 (
                 end
             end
             state_2 : begin
-                if (in_temp_min <= 1) begin
+                if (cmp_out2 == 1) begin
                     next_state = state_5;
                 end
                 else begin
@@ -1392,7 +1600,7 @@ module decision_tree8 (
                 end
             end
             state_3 : begin
-                if (in_temp_min <= 3) begin
+                if (cmp_out3 == 1) begin
                     next_state = state_6;
                 end
                 else begin
@@ -1400,7 +1608,7 @@ module decision_tree8 (
                 end
             end
             state_4 : begin
-                if (in_wind <= 6) begin
+                if (cmp_out4 == 1) begin
                     tmp_out = 5'b10000; // sunny
                 end
                 else begin
@@ -1408,7 +1616,7 @@ module decision_tree8 (
                 end
             end
             state_5 : begin
-                if (in_temp_max <= 5) begin
+                if (cmp_out5 == 1) begin
                     tmp_out = 5'b01000; // snowy
                 end
                 else begin
@@ -1416,7 +1624,7 @@ module decision_tree8 (
                 end
             end
             state_6 : begin
-                if (in_temp_min <= -4) begin
+                if (cmp_out6 == 1) begin
                     tmp_out = 5'b10000; // sunny
                 end
                 else begin
@@ -1424,7 +1632,7 @@ module decision_tree8 (
                 end
             end
             state_7 : begin
-                if (in_wind <= 2) begin
+                if (cmp_out7 == 1) begin
                     next_state = state_10;
                 end
                 else begin
@@ -1432,7 +1640,7 @@ module decision_tree8 (
                 end
             end
             state_8 : begin
-                if (in_temp_max <= 9) begin
+                if (cmp_out8 == 1) begin
                     next_state = state_11;
                 end
                 else begin
@@ -1440,7 +1648,7 @@ module decision_tree8 (
                 end
             end
             state_9 : begin
-                if (in_temp_min <= -3) begin
+                if (cmp_out9 == 1) begin
                     tmp_out = 5'b00010; // foggy
                 end
                 else begin
@@ -1448,7 +1656,7 @@ module decision_tree8 (
                 end
             end
             state_10 : begin
-                if (in_temp_max <= 9) begin
+                if (cmp_out10 == 1) begin
                     tmp_out = 5'b00100; // rainy
                 end
                 else begin
@@ -1456,7 +1664,7 @@ module decision_tree8 (
                 end
             end
             state_11 : begin
-                if (in_precipitation <= 5) begin
+                if (cmp_out11 == 1) begin
                     tmp_out = 5'b00100; // rainy
                 end
                 else begin
@@ -1482,9 +1690,48 @@ module decision_tree9 (
     tmp_out);
 
     input CLOCK_50, rst;
-    input[4:0] in_temp_max, in_temp_min,
+    input[31:0] in_temp_max, in_temp_min,
                 in_precipitation, in_wind;
     output reg[4:0] tmp_out;
+    wire cmp_out0, cmp_out1, cmp_out2, cmp_out3, cmp_out4, cmp_out5, cmp_out6, cmp_out7, cmp_out8, 
+        cmp_out9, cmp_out10, cmp_out11, cmp_out12, cmp_out13, cmp_out14, cmp_out15, cmp_out16;
+
+    reg [31:0] bc0 = 32'b01000001100011000000000000000000; // 17.5
+    reg [31:0] bc1 = 32'b00111111000000000000000000000000; // 0.5
+    reg [31:0] bc2 = 32'b00111111000000000000000000000000; // 0.5
+    reg [31:0] bc3 = 32'b01000000011000000000000000000000; // 3.5
+    reg [31:0] bc4 = 32'b01000000100100000000000000000000; // 4.5
+    reg [31:0] bc5 = 32'b01000001101101000000000000000000; // 22.5
+    reg [31:0] bc6 = 32'b01000000001000000000000000000000; // 2.5
+    reg [31:0] bc7 = 32'b01000000001000000000000000000000; // 6.5
+    reg [31:0] bc8 = 32'b01000000001000000000000000000000; // 2.5
+    reg [31:0] bc9 = 32'b01000000011000000000000000000000; // 3.5
+    reg [31:0] bc10 = 32'b01000001010010000000000000000000; // 12.5
+    reg [31:0] bc11 = 32'b01000001010010000000000000000000; // 12.5
+    reg [31:0] bc12 = 32'b01000001000010000000000000000000; // 8.5
+    reg [31:0] bc13 = 32'b00111111110000000000000000000000; // 1.5
+    reg [31:0] bc14 = 32'b01000000101100000000000000000000; // 5.5
+    reg [31:0] bc15 = 32'b01000001100111000000000000000000; // 19.5
+    reg [31:0] bc16 = 32'b01000000100100000000000000000000; // 4.5
+
+    cmp cmp0(CLOCK_50, in_temp_max, bc0, cmp_out0);
+    cmp cmp1(CLOCK_50, in_precipitation, bc1, cmp_out1);
+    cmp cmp2(CLOCK_50, in_precipitation, bc2, cmp_out2);
+    cmp cmp3(CLOCK_50, in_temp_max, bc3, cmp_out3);
+    cmp cmp4(CLOCK_50, in_wind, bc4, cmp_out4);
+    cmp cmp5(CLOCK_50, in_temp_max, bc5, cmp_out5);
+    cmp cmp6(CLOCK_50, in_wind, bc6, cmp_out6);
+    cmp cmp7(CLOCK_50, in_temp_max, bc7, cmp_out7);
+    cmp cmp8(CLOCK_50, in_temp_min, bc8, cmp_out8);
+    cmp cmp9(CLOCK_50, in_precipitation, bc9, cmp_out9);
+    cmp cmp10(CLOCK_50, in_temp_min, bc10, cmp_out10);
+    cmp cmp11(CLOCK_50, in_temp_min, bc11, cmp_out11);
+    cmp cmp12(CLOCK_50, in_temp_max, bc12, cmp_out12);
+    cmp cmp13(CLOCK_50, in_wind, bc13, cmp_out13);
+    cmp cmp14(CLOCK_50, in_temp_max, bc14, cmp_out14);
+    cmp cmp15(CLOCK_50, in_temp_max, bc15, cmp_out15);
+    cmp cmp16(CLOCK_50, in_wind, bc16, cmp_out16);
+
 
     parameter state_0 = 5'b00000;
     parameter state_1 = 5'b00001;
@@ -1518,7 +1765,7 @@ module decision_tree9 (
     always @ (posedge CLOCK_50) begin
        case(present_state)
             state_0 : begin
-                if (in_temp_max <= 18) begin
+                if (cmp_out0 == 1) begin
                     next_state = state_1;
                 end
                 else begin
@@ -1526,7 +1773,7 @@ module decision_tree9 (
                 end
             end
             state_1 : begin
-                if (in_precipitation <= 1) begin
+                if (cmp_out1 == 1) begin
                     next_state = state_3;
                 end
                 else begin
@@ -1534,7 +1781,7 @@ module decision_tree9 (
                 end
             end
             state_2 : begin
-                if (in_precipitation <= 1) begin
+                if (cmp_out2 == 1) begin
                     next_state = state_5;
                 end
                 else begin
@@ -1542,7 +1789,7 @@ module decision_tree9 (
                 end
             end
             state_3 : begin
-                if (in_temp_max <= 4) begin
+                if (cmp_out3 == 1) begin
                     next_state = state_6;
                 end
                 else begin
@@ -1550,7 +1797,7 @@ module decision_tree9 (
                 end
             end
             state_4 : begin
-                if (in_wind <= 5) begin
+                if (cmp_out4 == 1) begin
                     next_state = state_8;
                 end
                 else begin
@@ -1558,7 +1805,7 @@ module decision_tree9 (
                 end
             end
             state_5 : begin
-                if (in_temp_max <= 23) begin
+                if (cmp_out5 == 1) begin
                     next_state = state_10;
                 end
                 else begin
@@ -1566,7 +1813,7 @@ module decision_tree9 (
                 end
             end
             state_6 : begin
-                if (in_wind <= 3) begin
+                if (cmp_out6 == 1) begin
                     tmp_out = 3'b010; // drizzle
                 end
                 else begin
@@ -1574,7 +1821,7 @@ module decision_tree9 (
                 end
             end
             state_7 : begin
-                if (in_temp_max <= 7) begin
+                if (cmp_out7 == 1) begin
                     tmp_out = 5'b10000; // sunny
                 end
                 else begin
@@ -1582,7 +1829,7 @@ module decision_tree9 (
                 end
             end
             state_8 : begin
-                if (in_temp_min <= 3) begin
+                if (cmp_out8 == 1) begin
                     next_state = state_13;
                 end
                 else begin
@@ -1590,7 +1837,7 @@ module decision_tree9 (
                 end
             end
             state_9 : begin
-                if (in_precipitation <= 4) begin
+                if (cmp_out9 == 1) begin
                     next_state = state_14;
                 end
                 else begin
@@ -1598,7 +1845,7 @@ module decision_tree9 (
                 end
             end
             state_10 : begin
-                if (in_temp_min <= 13) begin
+                if (cmp_out10 == 1) begin
                     tmp_out = 5'b10000; // sunny
                 end
                 else begin
@@ -1606,7 +1853,7 @@ module decision_tree9 (
                 end
             end
             state_11 : begin
-                if (in_temp_min <= 13) begin
+                if (cmp_out11 == 1) begin
                     tmp_out = 5'b10000; // sunny
                 end
                 else begin
@@ -1614,7 +1861,7 @@ module decision_tree9 (
                 end
             end
             state_12 : begin
-                if (in_temp_max <= 9) begin
+                if (cmp_out12 == 1) begin
                     tmp_out = 5'b00100; // rainy
                 end
                 else begin
@@ -1622,7 +1869,7 @@ module decision_tree9 (
                 end
             end
             state_13 : begin
-                if (in_wind <= 2) begin
+                if (cmp_out13 == 1) begin
                     tmp_out = 5'b01000; // snowy
                 end
                 else begin
@@ -1630,7 +1877,7 @@ module decision_tree9 (
                 end
             end
             state_14 : begin
-                if (in_temp_max <= 6) begin
+                if (cmp_out14 == 1) begin
                      tmp_out = 5'b01000; // snowy
                 end
                 else begin
@@ -1638,7 +1885,7 @@ module decision_tree9 (
                 end
             end
             state_15 : begin
-                if (in_temp_max <= 20) begin
+                if (cmp_out15 == 1) begin
                     tmp_out = 5'b00100; // rainy
                 end
                 else begin
@@ -1646,7 +1893,7 @@ module decision_tree9 (
                 end
             end
             state_16 : begin
-                if (in_wind <= 5) begin
+                if (cmp_out16 == 1) begin
                      tmp_out = 5'b10000; // sunny
                 end
                 else begin
@@ -1662,15 +1909,13 @@ module decision_tree9 (
     
 endmodule
 
-
-
 module majority_vote(
     CLOCK_50,
     out1, out2, out3, out4, out5, out6, out7, out8, out9,
     result);
     input CLOCK_50;
     input [4:0] out1, out2, out3, out4, out5, out6, out7, out8, out9;
-    output wire [3:0] result;
+    output wire [2:0] result;
 
     wire [4:0] tree1;
     assign tree1 = out1;
@@ -1707,11 +1952,11 @@ module majority_vote(
     wire [4:0] winner_cnt_3vs4;
     wire [4:0] winner_cnt_12vs34;
 
-    wire [3:0] winner_1vs2;
-    wire [3:0] winner_3vs4;
-    wire [3:0] winner_12vs34;
+    wire [2:0] winner_1vs2;
+    wire [2:0] winner_3vs4;
+    wire [2:0] winner_12vs34;
 
-    wire [3:0] winner;
+    wire [2:0] winner;
 
     assign winner_cnt_1vs2 = drizzle_1 > fog_2 ? drizzle_1 : fog_2;
     assign winner_1vs2 = drizzle_1 > fog_2 ? 1 : 2;
@@ -1725,8 +1970,42 @@ module majority_vote(
     assign result = winner; 
 endmodule
 
+module cmp(CLOCK_50, in1, in2, out);
+	input CLOCK_50;
+	input [31:0] in1, in2;
+	output reg out;
+	wire in1_neg, in2_neg;
+	assign in1_neg = in1[31];
+	assign in2_neg = in2[31];
+
+	always @ (posedge CLOCK_50) begin
+		if(in1_neg == 1 && in2_neg == 1) begin // neg <= neg
+			if(in1[30:0] >= in2[30:0]) begin
+				out = 1;
+			end
+			else begin
+				out = 0;
+			end
+		end
+		else if(in1_neg == 1 && in2_neg == 0) begin // neg <= pos
+			out = 1;
+		end
+		else if(in1_neg == 0 && in2_neg == 1) begin // pos <= neg
+			out = 0;
+		end
+		else begin  // pos <= pos
+			if(in1[30:0] <= in2[30:0]) begin
+				out = 1;
+			end
+			else begin
+				out = 0;
+			end                           
+		end
+	end
+endmodule
+
 module testbench;
-    reg[4:0] in_temp_max, in_temp_min, in_precipitation, in_wind;
+    reg[31:0] in_temp_max, in_temp_min, in_precipitation, in_wind;
     wire[4:0] out1, out2, out3, out4, out5, out6, out7, out8, out9;
     wire clock;
     reg rst;
@@ -1744,10 +2023,10 @@ module testbench;
     majority_vote vote(clock, out1, out2, out3, out4, out5, out6, out7, out8, out9 ,result);
 
     initial begin
-        in_temp_max = 5'b01110;
-        in_temp_min = 5'b00110;
-        in_precipitation = 5'b00000;
-        in_wind = 5'b00001;
+        in_temp_max = 32'b01000001011010000000000000000000; // 14.5
+        in_temp_min = 32'b10111111000000000000000000000000; // -0.5
+        in_precipitation = 32'b00111111101001100110011001100110; // 1.3
+        in_wind = 32'b01000000100000000000000000000000; // 4
         rst = 0;
         # 50 rst = 1;
         # 30 rst = 0;
