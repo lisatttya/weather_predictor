@@ -1,0 +1,14 @@
+module weather_fpga01r(
+    input CLOCK_50,
+	input[1:0] KEY,
+    output [2:0] LED
+);
+    wire clock;
+    wire [2:0] out;
+
+	pll pll(CLOCK_50, ~KEY[1], clock);
+    // expext sunny, 3'b100
+    decision_tree tree1(clock, KEY[0], 5'b00111, 5'b00001, 
+                        5'00000, 5'b00010, out);
+    assign LED = out[2:0];
+endmodule
